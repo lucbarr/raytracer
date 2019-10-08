@@ -15,10 +15,10 @@ const (
 
 func main() {
 	quad := [4]Vec3{
-		Vec3{100, 200, 200},
-		Vec3{100, 200, 200},
-		Vec3{100, 200, 200},
-		Vec3{100, 200, 200},
+		Vec3{-100, 100, 100},
+		Vec3{100, 100, 100},
+		Vec3{100, -100, 100},
+		Vec3{-100, -100, 100},
 	}
 
 	cam := &Camera{
@@ -27,12 +27,12 @@ func main() {
 	}
 
 	light := &Light{
-		Source:  Vec3{1000, 0, 0},
-		Ambient: NewPixel(100, 0, 0),
+		Source:  Vec3{0, 0, 1000},
+		Ambient: NewPixel(0, 0, 100),
 	}
 
 	sphere := &Sphere{
-		Center: Vec3{500, 0, 0},
+		Center: Vec3{0, 0, 500},
 		Radius: 100,
 	}
 

@@ -19,7 +19,29 @@ type Light struct {
 }
 
 // ApplyModel Calculates lambertial model given a ray and a sphere
-func (l *Light) ApplyModel(ray Vec3, s *Sphere) Pixel {
+// constraints:
+// ray(t) = o + vt
+// F(x) = len2(x-c) + len2(r)
+func (l *Light) ApplyModel(v Vec3, o Vec3, s *Sphere) Pixel {
+	c := s.Center
+
+	oc := Sub(o, c)
+	oc2 := oc.Len2()
+	r2 := s.Radius * s.Radius
+	v2 := v.Len2()
+	dot := Dot(v, oc)
+
+	delta := 4*dot*dot - 4*(v2*(oc2-r2))
+
+	if delta < 0 {
+		return Pixel{
+			R: 0,
+			G: 0,
+			B: 0,
+			A: 255,
+		}
+	}
+
 	return l.Ambient
 }
 
@@ -51,6 +73,7 @@ type Sphere struct {
 // Pixel defines an RGB pixel
 type Pixel color.RGBA
 
+// NewPixel returns a new pixel
 func NewPixel(r, g, b uint8) Pixel {
 	return Pixel{
 		R: r,
@@ -87,6 +110,16 @@ func Mul(a Vec3, s float64) Vec3 {
 	return a
 }
 
+// Dot returns the dot product between a and b
+func Dot(a, b Vec3) float64 {
+	return (a.x * b.x) + (a.y * b.y) + (a.z * b.z)
+}
+
+// Len2 returns the lenght of a vector
+func (v Vec3) Len2() float64 {
+	return v.x*v.x + v.y*v.y + v.z*v.z
+}
+
 // Len returns the lenght of a vector
 func (v Vec3) Len() float64 {
 	return math.Sqrt(v.x*v.x + v.y*v.y + v.z*v.z)
@@ -115,7 +148,7 @@ func (s *Scene) Render(w, h int) ([][]Pixel, error) {
 			pixelPoint := Add(v0, dx, dy)
 			ray := Sub(pixelPoint, s.Camera.Obs)
 
-			pixel := s.Light.ApplyModel(ray, s.Sphere)
+			pixel := s.Light.ApplyModel(ray, s.Camera.Obs, s.Sphere)
 			pixels[i-1][j-1] = pixel
 		}
 	}
