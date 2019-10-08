@@ -8,9 +8,12 @@ import (
 	"os"
 )
 
-const (
-	height = 400
-	width  = 400
+var (
+	height  = 400
+	width   = 400
+	ambient = NewPixel(50, 0, 50)
+	k       = NewPixel(139, 0, 139)
+	radius  = 100.0
 )
 
 func main() {
@@ -27,13 +30,13 @@ func main() {
 	}
 
 	light := &Light{
-		Source:  Vec3{0, 0, 1000},
-		Ambient: NewPixel(0, 0, 100),
+		Ambient: ambient,
 	}
 
 	sphere := &Sphere{
-		Center: Vec3{0, 0, 500},
-		Radius: 100,
+		Center: Vec3{0, 0, 200},
+		Radius: radius,
+		K:      k,
 	}
 
 	scene := &Scene{
@@ -42,30 +45,49 @@ func main() {
 		Sphere: sphere,
 	}
 
-	pixels, err := scene.Render(width, height)
-	if err != nil {
-		fmt.Println(err)
-		return
+	lights := []Vec3{
+		Vec3{1, 1, 0},
+		Vec3{0, 1, 0},
+		Vec3{-1, 1, 0},
+		Vec3{-1, 0, 0},
+		Vec3{-1, -1, 0},
+		Vec3{0, -1, 0},
+		Vec3{1, -1, 0},
+		Vec3{1, 0, 0},
 	}
 
-	img := image.NewNRGBA(image.Rect(0, 0, width, height))
-	for i, row := range pixels {
-		for j, pixel := range row {
-			img.Set(i, j, color.RGBA{
-				R: pixel.R,
-				G: pixel.G,
-				B: pixel.B,
-				A: pixel.A,
-			})
+	for i, l := range lights {
+		light.Source = l
+
+		pixels, err := scene.Render(width, height)
+		if err != nil {
+			fmt.Println(err)
+			return
 		}
-	}
 
-	file, _ := os.Create("img.png")
-	defer file.Close()
+		img := image.NewNRGBA(image.Rect(0, 0, width, height))
+		for i, row := range pixels {
+			for j, pixel := range row {
+				img.Set(i, j, color.RGBA{
+					R: pixel.R,
+					G: pixel.G,
+					B: pixel.B,
+					A: pixel.A,
+				})
+			}
+		}
 
-	err = png.Encode(file, img)
-	if err != nil {
-		fmt.Println(err)
-		return
+		file, err := os.Create(fmt.Sprintf("img%v.png", i))
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		defer file.Close()
+
+		err = png.Encode(file, img)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 	}
 }
