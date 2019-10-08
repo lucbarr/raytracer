@@ -63,11 +63,37 @@ func (l *Light) ApplyModel(v Vec3, o Vec3, s *Sphere) Pixel {
 
 	n := Sub(closest, c)
 
-	return l.applyLight(n)
+	return l.applyLight(n, s)
 }
 
-func (l *Light) applyLight(n Vec3) Pixel {
-	return l.Ambient
+func (l *Light) applyLight(n Vec3, s *Sphere) Pixel {
+	n = n.Normalize()
+	light := l.Source.Normalize()
+	dot := Dot(n, light)
+	if dot < 0 {
+		dot = 0
+	}
+
+	r := float64(s.K.R)*dot + float64(l.Ambient.R)
+	g := float64(s.K.G)*dot + float64(l.Ambient.G)
+	b := float64(s.K.B)*dot + float64(l.Ambient.B)
+
+	return Pixel{
+		R: uint8(clamp(0, 255, r)),
+		G: uint8(clamp(0, 255, g)),
+		B: uint8(clamp(0, 255, b)),
+		A: 255,
+	}
+}
+
+func clamp(lo, hi, v float64) float64 {
+	if v < lo {
+		return lo
+	}
+	if v > hi {
+		return hi
+	}
+	return v
 }
 
 // Camera defines the camera
@@ -93,6 +119,7 @@ type Quad [4]Vec3
 type Sphere struct {
 	Center Vec3
 	Radius float64
+	K      Pixel
 }
 
 // Pixel defines an RGB pixel
@@ -148,6 +175,19 @@ func (v Vec3) Len2() float64 {
 // Len returns the lenght of a vector
 func (v Vec3) Len() float64 {
 	return math.Sqrt(v.x*v.x + v.y*v.y + v.z*v.z)
+}
+
+// Normalize returns normalized vector
+func (v Vec3) Normalize() Vec3 {
+	norm := v.Len()
+	if norm == 0 {
+		return Vec3{}
+	}
+	return Vec3{
+		x: v.x / norm,
+		y: v.y / norm,
+		z: v.z / norm,
+	}
 }
 
 // Render returns the rendered image RGB Pixels
