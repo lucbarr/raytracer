@@ -55,7 +55,7 @@ func (l *Light) ApplyModel(v Vec3, o Vec3, s *Sphere) Pixel {
 	dx2 := Sub(x2, o)
 
 	var closest Vec3
-	if dx1.Len2() < dx2.Len() {
+	if dx1.Len2() < dx2.Len2() {
 		closest = dx1
 	} else {
 		closest = dx2
