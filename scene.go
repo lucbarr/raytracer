@@ -42,6 +42,31 @@ func (l *Light) ApplyModel(v Vec3, o Vec3, s *Sphere) Pixel {
 		}
 	}
 
+	t1 := ((-2 * dot) + math.Sqrt(delta)) / 2 * v2
+	t2 := ((-2 * dot) - math.Sqrt(delta)) / 2 * v2
+
+	vt1 := Mul(v, t1)
+	vt2 := Mul(v, t2)
+
+	x1 := Add(o, vt1)
+	x2 := Add(o, vt2)
+
+	dx1 := Sub(x1, o)
+	dx2 := Sub(x2, o)
+
+	var closest Vec3
+	if dx1.Len2() < dx2.Len() {
+		closest = dx1
+	} else {
+		closest = dx2
+	}
+
+	n := Sub(closest, c)
+
+	return l.applyLight(n)
+}
+
+func (l *Light) applyLight(n Vec3) Pixel {
 	return l.Ambient
 }
 
